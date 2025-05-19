@@ -41,7 +41,7 @@ if uploaded_file is not None:
     model = joblib.load("simpleml_model.pkl")
 
     # Select features (adjust based on your CSV)
-    features = df.drop(columns=["Name"], errors='ignore')
+    features = df.drop(columns=["Name", "At_Risk", "Risk_Level"], errors='ignore')
     prediction = model.predict(features)
     df["Risk_Level"] = ["At Risk" if p == 1 else "Safe" for p in prediction]
 
