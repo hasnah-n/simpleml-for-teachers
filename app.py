@@ -37,17 +37,33 @@ if uploaded_file is not None:
     st.write("✅ Data Preview")
     st.dataframe(df)
 
+    # Encode categorical columns
+    if "JANTINA" in df.columns:
+        df["JANTINA"] = df["JANTINA"].map({"Perempuan": 0, "Lelaki": 1})
+
+    if "GREDSPM" in df.columns:
+        grade_map = {
+            "A+": 1, "A": 2, "A-": 3, "B+": 4, "B": 5,
+            "C+": 6, "C": 7, "D": 8, "E": 9, "G": 10
+        }
+        df["GREDSPM"] = df["GREDSPM"].map(grade_map)
+
+    # Drop non-feature columns
+    features = df.drop(columns=["NAMA", "Name", "At_Risk", "Risk_Level"], errors='ignore')
+
+    # Check and drop any non-numeric columns that might still exist
+    features = features.select_dtypes(include=["number", "bool"])
+
     # Load ML model
     model = joblib.load("simpleml_model.pkl")
 
-    # Select features (adjust based on your CSV)
-    features = df.drop(columns=["Name", "At_Risk", "Risk_Level"], errors='ignore')
+    # Make predictions
     prediction = model.predict(features)
     df["Risk_Level"] = ["At Risk" if p == 1 else "Safe" for p in prediction]
 
     if st.button(predict_label):
         st.subheader(output_label)
-        st.dataframe(df[["Name", "Risk_Level"]] if "Name" in df.columns else df)
+        st.dataframe(df[["NAMA", "Risk_Level"]] if "NAMA" in df.columns else df)
 
         # SHAP Explanation
         explainer = shap.TreeExplainer(model)
